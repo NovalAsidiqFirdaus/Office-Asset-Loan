@@ -1,54 +1,136 @@
 # Office Asset Loan (`office_asset_loan`)
 
-> **Tugas Odoo Bootcamp Batch #10 (Basic): Custom Module “Office Asset Loan”**  
-> **Odoo Community Edition 19.0** · Level: Basic
+> **Tugas Odoo Bootcamp Batch #10 (Basic): Custom Module “Office Asset Loan”**
+> **Versi Odoo: Community Edition (CE) 19.0**
 
 ---
 
 ## 1. Deskripsi Modul
-Modul `office_asset_loan` dirancang untuk memfasilitasi pencatatan inventaris bersama kantor (proyektor, laptop cadangan, kamera, kabel roll, dsb.) dan mengelola siklus peminjamannya secara transparan, akurat, dan terstruktur.
+
+Modul `office_asset_loan` mencatat inventaris bersama kantor (proyektor, laptop cadangan, kamera, kabel roll, dsb.) dan mengelola siklus peminjamannya secara transparan, akurat, dan terstruktur.
 
 Dengan modul ini:
-- Setiap aset memiliki kode unik dan status ketersediaan (*Available*).
-- Menghindari peminjaman ganda (*double borrowing*) pada aset yang sedang dipinjam orang lain.
-- Mencegah peminjaman aset yang berstatus rusak (*damaged*).
-- Menghitung durasi peminjaman dan mendeteksi keterlambatan pengembalian (*overdue*) secara otomatis.
-- Mencegah penghapusan peminjaman yang sedang berjalan (*Borrowed*) atau sudah selesai (*Returned*).
+
+- Setiap aset memiliki kode unik dan status ketersediaan (_Available_).
+- Peminjaman ganda (_double borrowing_) pada aset yang sedang dipinjam dicegah.
+- Aset berkondisi rusak (_Damaged_) tidak dapat dipinjam.
+- Durasi peminjaman dihitung dan keterlambatan pengembalian (_overdue_) terdeteksi otomatis.
+- Peminjaman berstatus _Borrowed_ atau _Returned_ tidak dapat dihapus.
 
 ---
 
-## 2. Fitur Utama & Aturan Bisnis (BR-1 s/d BR-8)
+## 2. Daftar Fitur
 
-1. **Master Inventaris Kantor (`office.asset`)**
-   - Pencatatan aset: Nama Aset, Kode Aset, Kategori (*Electronics, Furniture, Vehicle, Other*), Tanggal Beli, Kondisi (*Good, Fair, Damaged*), Catatan, dan Status Aktif (*Archive support*).
-   - **BR-1**: Kode aset dijamin unik di tingkat database menggunakan `models.Constraint('UNIQUE(code)', ...)`.
-   - **Smart Button "Loans" (Bonus +3)**: Menampilkan jumlah peminjaman dan membuka daftar peminjaman terkait.
-   - **Ketersediaan Real-Time**: Kolom `is_available` bernilai *True* jika tidak ada peminjaman berstatus *Borrowed*.
+### 2.1 Master Inventaris Kantor (`office.asset`)
 
-2. **Pencatatan Peminjaman (`office.asset.loan`)**
-   - **BR-3**: Nomor peminjaman otomatis berformat `LOAN/0001`, `LOAN/0002`, dst. menggunakan `ir.sequence` dan `@api.model_create_multi`.
-   - **BR-2**: Validasi tenggat pengembalian (`due_date` tidak boleh lebih awal dari `loan_date`) menggunakan `@api.constrains`.
-   - **BR-8**: Otomatis mengisi `due_date = loan_date + 7 hari` ketika `loan_date` diubah jika `due_date` kosong atau lebih awal.
-   - **BR-4**: Tombol **Borrow** hanya untuk status *Draft*. Memvalidasi bahwa aset tidak sedang dipinjam pihak lain dan kondisi aset bukan *Damaged*.
-   - **BR-5**: Tombol **Return** hanya untuk status *Borrowed*, mencatat tanggal kembali (*return_date*) hari ini dan mengubah status menjadi *Returned*.
-   - **BR-6**: Tombol **Cancel** membatalkan peminjaman berstatus *Draft*.
-   - **BR-7**: Peminjaman berstatus *Borrowed* atau *Returned* dilarang dihapus (`@api.ondelete(at_uninstall=False)`).
-   - **Durasi & Overdue**: Menghitung selisih hari (`duration_days`) dan menandai baris terlambat (*is_overdue*) dengan warna merah (`decoration-danger`).
+- Data aset: Nama Aset, Kode Aset, Kategori (_Electronics, Furniture, Vehicle, Other_), Tanggal Beli, Kondisi (_Good, Fair, Damaged_), Catatan, dan Status Aktif (mendukung _archive_).
+- **BR-1** – Kode aset unik di tingkat database melalui `models.Constraint('UNIQUE(code)', ...)`.
+- **Ketersediaan real-time** – kolom `is_available` bernilai _True_ bila tidak ada peminjaman berstatus _Borrowed_.
+- **Smart button “Loans”** – menampilkan jumlah peminjaman dan membuka daftar peminjaman aset terkait.
+- Tab **Loan History** pada form aset.
 
-3. **Fitur Bonus Terintegrasi (Nilai Tambah Maksimal)**
-   - **Bonus +3**: Smart button *Loans* pada form aset.
-   - **Bonus +3**: Filter *Overdue* pada pencarian peminjaman.
-   - **Bonus +2**: Record Rule di mana pengguna internal hanya melihat peminjamannya sendiri, sedangkan Administrator melihat seluruh peminjaman.
-   - **Bonus +2**: Data Demo terisi di `demo/office_asset_loan_demo.xml` (4 aset & 3 peminjaman).
+### 2.2 Pencatatan Peminjaman (`office.asset.loan`)
+
+| Kode     | Aturan bisnis                                                                                                             |
+| -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **BR-2** | `due_date` tidak boleh lebih awal dari `loan_date` (`@api.constrains`).                                                   |
+| **BR-3** | Nomor peminjaman otomatis `LOAN/0001`, `LOAN/0002`, dst. (`ir.sequence` + `@api.model_create_multi`).                     |
+| **BR-4** | Tombol **Borrow** hanya untuk status _Draft_; aset tidak boleh sedang dipinjam pihak lain dan kondisinya bukan _Damaged_. |
+| **BR-5** | Tombol **Return** hanya untuk status _Borrowed_; mengisi `return_date` hari ini dan mengubah status menjadi _Returned_.   |
+| **BR-6** | Tombol **Cancel** membatalkan peminjaman berstatus _Draft_.                                                               |
+| **BR-7** | Peminjaman _Borrowed_ atau _Returned_ tidak boleh dihapus (`@api.ondelete(at_uninstall=False)`).                          |
+| **BR-8** | `due_date` otomatis diisi `loan_date` + 7 hari saat `loan_date` diubah, jika `due_date` kosong atau lebih awal.           |
+
+Tambahan:
+
+- **Durasi & Overdue** – `duration_days` menghitung selisih hari, dan baris yang terlambat (`is_overdue`) ditandai merah (`decoration-danger`).
+- **Filter Overdue** pada pencarian peminjaman.
+
+### 2.3 Keamanan dan Data Demo
+
+- **Record Rule** – pengguna internal hanya melihat peminjamannya sendiri, Administrator melihat seluruh peminjaman.
+- **Data demo** pada `demo/office_asset_loan_demo.xml` (4 aset dan 3 peminjaman).
 
 ---
 
-## 3. Struktur Berkas Modul
+## 3. Screenshot
+
+### 3.1 Daftar Peminjaman (Loans)
+
+Baris berwarna merah adalah peminjaman yang melewati tenggat (_overdue_).
+
+![Daftar peminjaman](screenshots/01-loan-list.png)
+
+### 3.2 Form Peminjaman Berstatus _Borrowed_
+
+![Form peminjaman berstatus Borrowed](screenshots/04-loan-form-borrowed.png)
+
+### 3.3 Form Aset
+
+Terdapat smart button **Loans**, status ketersediaan, serta tab **Loan History**.
+
+![Form aset](screenshots/03-asset-form.png)
+
+### 3.4 Tambahan
+
+**Daftar aset** (kolom Condition dan Available):
+
+![Daftar aset](screenshots/02-asset-list.png)
+
+**Validasi BR-2** – tenggat tidak boleh lebih awal dari tanggal pinjam:
+
+![Validation error](screenshots/05-validation-error.png)
+
+**Modul pada menu Apps:**
+
+![Modul di Apps](screenshots/06-apps-install.png)
+
+---
+
+## 4. Cara Instalasi
+
+**Persyaratan:** Odoo Community Edition **19.0** dan PostgreSQL.
+
+### Metode 1: Melalui Antarmuka Odoo (UI)
+
+1. Letakkan folder `office_asset_loan` di direktori `custom-addons` yang terdaftar pada `addons_path` di `odoo.conf`:
+   ```ini
+   addons_path = C:\odoo-dev\odoo\odoo\addons,C:\odoo-dev\odoo\addons,C:\odoo-dev\custom-addons
+   ```
+2. Restart Odoo Server (di VS Code tekan `F5` atau tombol Restart).
+3. Buka `http://localhost:8069`.
+4. Aktifkan **Developer Mode** (menu _Settings_, atau tambahkan `?debug=1` pada URL).
+5. Buka menu **Apps** → **Update Apps List** → **Update**.
+6. Hapus filter pada kotak pencarian, lalu ketik `Office Asset Loan`.
+7. Klik **Activate** / **Install**.
+
+### Metode 2: Melalui Terminal (CLI)
+
+```powershell
+& "C:\odoo-dev\odoo\.venv\Scripts\python.exe" "C:\odoo-dev\odoo\odoo-bin" -c "C:\odoo-dev\odoo\odoo.conf" -d <nama_database> -i office_asset_loan
+```
+
+Untuk memperbarui modul setelah ada perubahan kode, ganti `-i` dengan `-u`.
+
+---
+
+## 5. Cara Penggunaan Singkat
+
+1. Buka menu **Office Asset Loan → Assets**, lalu buat aset (nama, kode unik, kategori, kondisi).
+2. Buka **Loans → New**, pilih aset dan peminjam, lalu isi tanggal pinjam dan tujuan. Tenggat terisi otomatis 7 hari.
+3. Klik **Borrow** agar status menjadi _Borrowed_. Aset otomatis tidak _Available_.
+4. Setelah aset kembali, klik **Return**. Status menjadi _Returned_ dan aset kembali _Available_.
+
+---
+
+## 6. Struktur Berkas Modul
+
 ```
 office_asset_loan/
 ├── __init__.py
 ├── __manifest__.py
 ├── README.md
+├── screenshots/
 ├── models/
 │   ├── __init__.py
 │   ├── office_asset.py
@@ -70,53 +152,31 @@ office_asset_loan/
 
 ---
 
-## 4. Cara Instalasi
+## 7. Verifikasi Skenario Uji (12 Skenario)
 
-### Metode 1: Melalui Antarmuka Odoo (UI)
-1. Pastikan folder `office_asset_loan` berada di dalam direktori `custom-addons` yang terdaftar pada konfigurasi `addons_path` di `odoo.conf`:
-   ```ini
-   addons_path = C:\odoo-dev\odoo\odoo\addons,C:\odoo-dev\odoo\addons,C:\odoo-dev\custom-addons
-   ```
-2. Restart Odoo Server (di VS Code tekan `F5` atau tombol Restart 🔄).
-3. Buka browser: `http://localhost:8069`
-4. Aktifkan **Developer Mode** di menu *Settings* (atau tambahkan `?debug=1` pada URL).
-5. Buka menu **Apps** (Aplikasi) ➔ klik menu **Update Apps List** ➔ klik tombol **Update**.
-6. Pada kotak pencarian, hapus filter dan ketik: `Office Asset Loan`
-7. Klik tombol **Activate** / **Install**.
-
-### Metode 2: Melalui Terminal (CLI)
-Jalankan perintah instalasi langsung ke database:
-```powershell
-& "C:\odoo-dev\odoo\.venv\Scripts\python.exe" "C:\odoo-dev\odoo\odoo-bin" -c "C:\odoo-dev\odoo\odoo.conf" -d <nama_database> -i office_asset_loan
-```
+| #   | Langkah Pengujian                                  | Hasil                                                                 | Status |
+| --- | -------------------------------------------------- | --------------------------------------------------------------------- | :----: |
+| 1   | Install modul pada database baru                   | Terinstal bersih tanpa error dan warning                              |   ✅   |
+| 2   | Buat aset “Proyektor Epson”, kode `AST-001`        | Tersimpan, status _Available_                                         |   ✅   |
+| 3   | Buat aset kedua dengan kode `AST-001`              | Ditolak constraint PostgreSQL (BR-1)                                  |   ✅   |
+| 4   | Buat peminjaman baru, pilih Proyektor Epson        | `LOAN/0001` terbentuk, peminjam = user login, tanggal pinjam hari ini |   ✅   |
+| 5   | Ubah `due_date` menjadi kemarin, simpan            | `ValidationError` (BR-2)                                              |   ✅   |
+| 6   | Perbaiki `due_date`, klik Borrow                   | Status _Borrowed_, form read-only, aset tidak _Available_             |   ✅   |
+| 7   | Peminjaman kedua untuk aset yang sama, klik Borrow | `UserError`, aset sedang dipinjam (BR-4)                              |   ✅   |
+| 8   | Hapus peminjaman berstatus _Borrowed_              | `UserError` (BR-7)                                                    |   ✅   |
+| 9   | Klik Return pada peminjaman pertama                | Status _Returned_, `return_date` hari ini, aset _Available_           |   ✅   |
+| 10  | Ubah kondisi aset menjadi Damaged, coba Borrow     | `UserError`, kondisi Damaged (BR-4)                                   |   ✅   |
+| 11  | Buka tab Loan History pada form aset               | Seluruh riwayat tampil                                                |   ✅   |
+| 12  | Login sebagai user internal biasa                  | Menu tampil normal, ACL dan Record Rule bekerja                       |   ✅   |
 
 ---
 
-## 5. Verifikasi Skenario Uji (12 Skenario Lolos 100%)
+## 8. Kepatuhan Odoo 19 Community Edition
 
-| # | Langkah Pengujian | Hasil Pengujian | Status |
-|---|---|---|:---:|
-| 1 | Install modul pada database baru | Terinstal bersih tanpa error dan tanpa warning | ✅ Lolos |
-| 2 | Buat aset "Proyektor Epson", kode `AST-001` | Tersimpan, status *Available* tercentang | ✅ Lolos |
-| 3 | Buat aset kedua dengan kode `AST-001` | Ditolak oleh PostgreSQL constraint (BR-1) | ✅ Lolos |
-| 4 | Buat peminjaman baru, pilih Proyektor Epson | Nomor `LOAN/0001` terbentuk, peminjam login user, tanggal pinjam hari ini | ✅ Lolos |
-| 5 | Ubah `due_date` menjadi kemarin, lalu simpan | Muncul `ValidationError` (BR-2) | ✅ Lolos |
-| 6 | Perbaiki `due_date`, klik Borrow | Status *Borrowed*, form read-only, aset tidak *Available* | ✅ Lolos |
-| 7 | Buat peminjaman kedua untuk aset yang sama, klik Borrow | Ditolak dengan `UserError` bahwa aset sedang dipinjam (BR-4) | ✅ Lolos |
-| 8 | Hapus peminjaman yang berstatus *Borrowed* | Ditolak dengan `UserError` (BR-7) | ✅ Lolos |
-| 9 | Pada peminjaman pertama klik Return | Status *Returned*, `return_date` hari ini, aset kembali *Available* | ✅ Lolos |
-| 10 | Ubah kondisi aset menjadi Damaged, coba Borrow | Ditolak dengan `UserError` karena kondisi Damaged (BR-4) | ✅ Lolos |
-| 11 | Buka tab Loan History pada form aset | Seluruh riwayat peminjaman aset tampil rapi | ✅ Lolos |
-| 12 | Login sebagai user internal biasa | Menu tampil normal, ACL & Record Rule bekerja | ✅ Lolos |
-
----
-
-## 6. Kepatuhan Odoo 19 Community Edition
-- Menggunakan `<list>` dan `view_mode="list,form"` (tanpa `<tree>`).
-- Menggunakan ekspresi Python langsung pada `invisible="..."` dan `readonly="..."` (tanpa `attrs`).
-- Menggunakan `models.Constraint(...)` (tanpa `_sql_constraints`).
-- Menggunakan `@api.model_create_multi` dengan `vals_list` pada `create()`.
-- Menggunakan `@api.ondelete(at_uninstall=False)` untuk proteksi integritas data.
-- Menggunakan `self.env.cr`, `self.env.uid`, dan `self.env.context` (tanpa atribut privat usang).
-- Skema XML Search View mematuhi standar validasi RelaxNG Odoo 19.
-
+- Memakai `<list>` dan `view_mode="list,form"` (tanpa `<tree>`).
+- Ekspresi Python langsung pada `invisible="..."` dan `readonly="..."` (tanpa `attrs`).
+- Memakai `models.Constraint(...)` (tanpa `_sql_constraints`).
+- Memakai `@api.model_create_multi` dengan `vals_list` pada `create()`.
+- Memakai `@api.ondelete(at_uninstall=False)` untuk proteksi integritas data.
+- Memakai `self.env.cr`, `self.env.uid`, dan `self.env.context` (tanpa atribut privat usang).
+- Skema XML Search View mematuhi validasi RelaxNG Odoo 19.
