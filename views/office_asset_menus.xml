@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Root Menu -->
+        <menuitem id="menu_office_asset_root"
+                  name="Office Asset Loan"
+                  sequence="10"
+                  web_icon="office_asset_loan,static/description/icon.png"/>
+
+        <!-- Submenu: Loans -->
+        <menuitem id="menu_office_asset_loan"
+                  name="Loans"
+                  parent="menu_office_asset_root"
+                  action="action_office_asset_loan"
+                  sequence="10"/>
+
+        <!-- Submenu: Assets -->
+        <menuitem id="menu_office_asset"
+                  name="Assets"
+                  parent="menu_office_asset_root"
+                  action="action_office_asset"
+                  sequence="20"/>
+    </data>
+</odoo>

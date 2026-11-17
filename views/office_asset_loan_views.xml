@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- List View -->
+        <record id="view_office_asset_loan_list" model="ir.ui.view">
+            <field name="name">office.asset.loan.list</field>
+            <field name="model">office.asset.loan</field>
+            <field name="arch" type="xml">
+                <list string="Asset Loans"
+                    decoration-danger="is_overdue"
+                    decoration-muted="state in ('returned', 'cancelled')">
+                    <field name="is_overdue" column_invisible="True"/>
+                    <field name="name" string="Loan Number"/>
+                    <field name="asset_id" string="Asset"/>
+                    <field name="borrower_id" string="Borrower" widget="many2one_avatar_user"/>
+                    <field name="loan_date" string="Loan Date"/>
+                    <field name="due_date" string="Due Date"/>
+                    <field name="duration_days" string="Duration (Days)" optional="show"/>
+                    <field name="return_date" string="Return Date" optional="hide"/>
+                    <field name="state" string="Status" widget="badge"
+                        decoration-info="state == 'draft'"
+                        decoration-warning="state == 'borrowed'"
+                        decoration-success="state == 'returned'"
+                        decoration-muted="state == 'cancelled'"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Form View -->
+        <record id="view_office_asset_loan_form" model="ir.ui.view">
+            <field name="name">office.asset.loan.form</field>
+            <field name="model">office.asset.loan</field>
+            <field name="arch" type="xml">
+                <form string="Asset Loan">
+                    <header>
+                        <button name="action_borrow" type="object"
+                            string="Borrow" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                        <button name="action_return" type="object"
+                            string="Return" class="btn-success"
+                            invisible="state != 'borrowed'"/>
+                        <button name="action_draft" type="object"
+                            string="Reset to Draft" class="btn-secondary"
+                            invisible="state not in ('returned', 'cancelled')"/>
+                        <button name="action_cancel" type="object"
+                            string="Cancel"
+                            invisible="state != 'draft'"/>
+                        <field name="state" widget="statusbar"
+                            statusbar_visible="draft,borrowed,returned"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" string="Loan Number"/>
+                            <h1><field name="name" readonly="1"/></h1>
+                        </div>
+                        <group>
+                            <group string="Loan Details">
+                                <field name="asset_id" string="Asset"
+                                    readonly="state != 'draft'"/>
+                                <field name="borrower_id" string="Borrower"
+                                    readonly="state != 'draft'"/>
+                                <field name="purpose" string="Purpose"
+                                    readonly="state != 'draft'"
+                                    placeholder="e.g. Client presentation meeting"/>
+                            </group>
+                            <group string="Schedule &amp; Timeline">
+                                <field name="loan_date" string="Loan Date"
+                                    readonly="state != 'draft'"/>
+                                <field name="due_date" string="Due Date"
+                                    readonly="state != 'draft'"/>
+                                <field name="duration_days" string="Duration (Days)"
+                                    readonly="1"
+                                    help="Automatically calculated from the difference between Loan Date and Due Date."/>
+                                <field name="return_date" string="Return Date"
+                                    readonly="1"
+                                    invisible="state in ('draft', 'cancelled')"/>
+                                <field name="is_overdue" string="Is Overdue"
+                                    widget="boolean_toggle" readonly="1"
+                                    invisible="state != 'borrowed'"
+                                    help="Automated flag turning active/red when today passes due date without return."/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search View -->
+        <record id="view_office_asset_loan_search" model="ir.ui.view">
+            <field name="name">office.asset.loan.search</field>
+            <field name="model">office.asset.loan</field>
+            <field name="arch" type="xml">
+                <search string="Search Loans">
+                    <field name="name" string="Loan Number"/>
+                    <field name="asset_id" string="Asset"/>
+                    <field name="borrower_id" string="Borrower"/>
+                    <filter name="filter_borrowed" string="Borrowed"
+                        domain="[('state', '=', 'borrowed')]"/>
+                    <filter name="filter_overdue" string="Overdue"
+                        domain="[('state', '=', 'borrowed'), ('due_date', '&lt;', time.strftime('%Y-%m-%d'))]"/>
+                    <group>
+                        <filter string="By Borrower" name="group_borrower"
+                            context="{'group_by': 'borrower_id'}"/>
+                        <filter string="By Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Window Action -->
+        <record id="action_office_asset_loan" model="ir.actions.act_window">
+            <field name="name">Loans</field>
+            <field name="res_model">office.asset.loan</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_office_asset_loan_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No loan requests found!
+                </p>
+                <p>
+                    Click New to create a new asset borrowing request.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>
