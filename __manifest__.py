@@ -17,7 +17,7 @@ and tracks their borrowing lifecycle:
     """,
     'category': 'Tools',
     'author': 'Noval',
-    'website': 'https://github.com/noval',
+    'website': 'https://github.com/NovalAsidiqFirdaus/Office-Asset-Loan',
     'license': 'LGPL-3',
     'depends': ['base'],
     'data': [

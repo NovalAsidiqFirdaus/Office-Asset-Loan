@@ -1,0 +1,58 @@
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h2 class="oe_slogan" style="color: #714B67; font-weight: bold;">Office Asset Loan</h2>
+        <h3 class="oe_slogan" style="color: #495057;">Manage Office Inventory &amp; Borrowing Lifecycles in Odoo 19 CE</h3>
+        <p class="oe_mt32 text-center" style="font-size: 16px; line-height: 1.6; color: #555;">
+            <strong>Office Asset Loan</strong> is a lightweight yet robust Odoo 19 custom module tailored for internal company use.
+            It seamlessly records shared office equipment (projectors, spare laptops, cameras, cables) and tracks every loan request with complete transparency.
+        </p>
+        <div class="text-center oe_mt16">
+            <a href="https://github.com/NovalAsidiqFirdaus/Office-Asset-Loan" target="_blank" class="btn btn-primary btn-lg" style="background-color: #714B67; border-color: #714B67;">
+                <i class="fa fa-github"></i> View on GitHub
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan" style="color: #714B67;">Key Features &amp; Business Rules</h3>
+        <div class="oe_span6">
+            <div class="card p-3 shadow-sm mb-3">
+                <h4 style="color: #00A09D;"><i class="fa fa-cubes"></i> Asset Inventory (`office.asset`)</h4>
+                <ul style="color: #555; line-height: 1.8;">
+                    <li><strong>Unique Asset Codes:</strong> Enforced at database level via <code>models.Constraint</code> (BR-1).</li>
+                    <li><strong>Real-time Availability:</strong> Dynamic computed status toggling between free and borrowed.</li>
+                    <li><strong>Direct Smart Button:</strong> Quick one-click access to all historical loans for each asset.</li>
+                    <li><strong>Condition Tracking:</strong> Good, Fair, and Damaged states.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="oe_span6">
+            <div class="card p-3 shadow-sm mb-3">
+                <h4 style="color: #00A09D;"><i class="fa fa-calendar-check-o"></i> Loan Management (`office.asset.loan`)</h4>
+                <ul style="color: #555; line-height: 1.8;">
+                    <li><strong>Auto Sequence Numbering:</strong> Generates formatted codes like <code>LOAN/0001</code> (BR-3).</li>
+                    <li><strong>Schedule Constraints:</strong> Due date cannot precede loan date (BR-2).</li>
+                    <li><strong>Borrow Safeguards:</strong> Blocks double loans and checkout of damaged gear (BR-4).</li>
+                    <li><strong>One-Click Return:</strong> Auto-records return timestamp and frees the asset (BR-5).</li>
+                    <li><strong>Integrity Protection:</strong> Prevents deletion of active/returned loans (BR-7).</li>
+                    <li><strong>Overdue Detection:</strong> Automated warning badge &amp; visual indicators.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced text-center">
+        <h3 class="oe_slogan" style="color: #714B67;">Official Source Code &amp; Documentation</h3>
+        <p style="font-size: 15px; color: #666;">
+            Full documentation, setup guide, testing scenarios, and source code are available at:
+            <br/>
+            <a href="https://github.com/NovalAsidiqFirdaus/Office-Asset-Loan" target="_blank" style="font-weight: bold; color: #714B67;">
+                https://github.com/NovalAsidiqFirdaus/Office-Asset-Loan
+            </a>
+        </p>
+    </div>
+</section>
